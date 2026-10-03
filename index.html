@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FNaF: شبكة الخداع - النسخة النهائية</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Tajawal:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-color: #060608;
+    --panel-bg: #101016;
+    --border-color: #28283a;
+    --primary-red: #8b0000;
+    --text-gold: #ffcc00;
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: #fff;
+    font-family: 'Tajawal', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .pixel-box {
+    background: var(--panel-bg);
+    border: 4px solid #000;
+    box-shadow: inset -4px -4px 0px #000, inset 4px 4px 0px #222, 0 0 20px rgba(0,0,0,0.9);
+    padding: 20px;
+    width: 92%;
+    max-width: 500px;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Press Start 2P', 'Tajawal', cursive;
+    color: var(--text-gold);
+    text-align: center;
+    margin-top: 0;
+    text-shadow: 2px 2px #000;
+  }
+
+  input, select, button {
+    width: 100%;
+    padding: 11px;
+    margin: 5px 0;
+    border: 3px solid #000;
+    background: #000;
+    color: #00ff66;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    box-sizing: border-box;
+  }
+
+  button {
+    background: var(--primary-red);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: inset -2px -2px 0px #400;
+  }
+
+  button:disabled {
+    background: #333 !important;
+    color: #777 !important;
+    cursor: not-allowed;
+  }
+
+  .hidden { display: none !important; }
+
+  /* شاشة الـ 5 ثواني للبطاقة */
+  #roleRevealOverlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+    border: 4px solid var(--primary-red);
+  }
+
+  .chat-box {
+    height: 190px;
+    background: #020204;
+    border: 2px solid var(--border-color);
+    overflow-y: auto;
+    padding: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  .chat-msg { margin-bottom: 5px; line-height: 1.3; }
+  .chat-msg .user { color: #00ccff; }
+  .chat-msg .system { color: #ff0055; font-weight: bold; }
+
+  .flicker { animation: pulse 4s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
+</style>
+</head>
+<body class="flicker">
+
+<div class="pixel-box">
+
+  <!-- 1. شاشة الدخول -->
+  <div id="authScreen">
+    <h1>FNaF : شبكة الخداع</h1>
+    <div style="display:flex; gap:8px;">
+      <button onclick="switchAuth(true)">دخول</button>
+      <button onclick="switchAuth(false)">حساب جديد</button>
+    </div>
+    <input type="text" id="username" placeholder="اسم المستخدم">
+    <input type="password" id="password" placeholder="كلمة المرور">
+    <button id="authBtn" onclick="handleAuth()">تسجيل الدخول</button>
+  </div>
+
+  <!-- 2. القائمة الرئيسية -->
+  <div id="mainMenu" class="hidden">
+    <h2>أهلاً <span id="playerDisplay" style="color:#00ff66;"></span></h2>
+    <p id="roleDisplay" style="text-align:center; color:#aaa;">الشخصية: طفل (مدني)</p>
+    
+    <div id="adminBadge" class="hidden" style="border:1px dashed #ff0055; padding:5px; margin-bottom:5px; background:#1f000a; text-align:center;">
+      <span style="color:#ff0055;">👑 لوحة الأدمن (ياسر)</span>
+      <button onclick="forceBecomeKiller()" style="background:#440011; margin-top:5px;">اصبح القاتل غصباً (ويليام أفتن)</button>
+    </div>
+
+    <button onclick="showScreen('gachaScreen')">فتح باكج القتلة 🎁</button>
+    <button onclick="showScreen('lobbyScreen')">قائمة الرومات 🎮</button>
+    <button onclick="showScreen('settingsScreen')">الإعدادات ⚙️️</button>
+    <button onclick="logout()" style="background:#333;">تسجيل الخروج</button>
+  </div>
+
+  <!-- 3. نظام الباكجات -->
+  <div id="gachaScreen" class="hidden">
+    <h2>باكج الأنيماترونكس</h2>
+    <div style="border: 3px dashed var(--text-gold); padding:12px; text-align:center; background:#000; margin:10px 0;" id="gachaResult">
+      افتح الباكج واختبر حظك!
+    </div>
+    <button onclick="openPack()">فتح باكج مجاني</button>
+    <button onclick="showScreen('mainMenu')" style="background:#333;">عودة</button>
+  </div>
+
+  <!-- 4. قائمة الرومات -->
+  <div id="lobbyScreen" class="hidden">
+    <h2>الرومات</h2>
+    <input type="text" id="roomName" placeholder="اسم الروم">
+    <input type="number" id="playerCount" placeholder="عدد اللاعبين" value="6" min="4" max="16">
+    <button onclick="createRoom()">إنشاء وبدء اللعبة</button>
+    <button onclick="showScreen('mainMenu')" style="background:#333; margin-top:8px;">عودة</button>
+  </div>
+
+  <!-- 5. شاشة الجيم والشات -->
+  <div id="inRoomScreen" class="hidden">
+    <!-- نافذة كشف القدرات والبطاقة (5 ثوانٍ) -->
+    <div id="roleRevealOverlay" class="hidden">
+      <h2 id="revealTitle" style="color:#ffcc00;">-</h2>
+      <h3 id="revealRole" style="color:#ff0055;">-</h3>
+      <p id="revealDesc" style="color:#fff; font-size:14px; margin:15px 0;">-</p>
+      <p style="color:#888; font-size:12px;">سيبدأ الجيم خلال <b id="revealTimer" style="color:#ffcc00;">5</b> ثوانٍ...</p>
+    </div>
+
+    <h3 id="currentRoomTitle">روم: -</h3>
+    <p id="roomInfo" style="text-align:center; color:#ffcc00; font-size:12px;">اللاعبون: 6 | القتلة: 1</p>
+
+    <!-- أزرار القدرات المتاحة -->
+    <div id="topAbilitiesArea"></div>
+
+    <div class="chat-box" id="chatBox"></div>
+
+    <div id="abilitiesArea"></div>
+
+    <div style="display:flex; gap:5px; margin-top:5px;">
+      <input type="text" id="chatInput" placeholder="اكتب رسالتك...">
+      <button onclick="sendMsg()" style="width:30%;">إرسال</button>
+    </div>
+    <button onclick="leaveRoom()" style="background:#444; margin-top:5px;">مغادرة</button>
+  </div>
+
+  <!-- 6. الإعدادات والزر السري -->
+  <div id="settingsScreen" class="hidden">
+    <h2>الإعدادات</h2>
+    <button onclick="toggleMusic()" id="musicToggleBtn">🔊 إيقاف / تشغيل موسيقى التوتر</button>
+    <br><br>
+    <button id="resetBtn" onclick="clickResetSecret()" style="background:#111; border-color:#333;">إعادة ضبط الإعدادات</button>
+    <button onclick="showScreen('mainMenu')" style="background:#333; margin-top:10px;">عودة</button>
+  </div>
+
+</div>
+
+<script>
+  // نغمة رعب وموسيقى توتر حقيقية
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  let musicInterval = null;
+  let isMusicPlaying = false;
+
+  function startTerrorMusic() {
+    if(isMusicPlaying) return;
+    isMusicPlaying = true;
+    musicInterval = setInterval(() => {
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(45 + Math.random() * 15, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(30, audioCtx.currentTime + 1.8);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.8);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 1.8);
+      } catch(e){}
+    }, 2000);
+  }
+
+  function toggleMusic() {
+    if(isMusicPlaying) {
+      clearInterval(musicInterval);
+      isMusicPlaying = false;
+      document.getElementById('musicToggleBtn').innerText = '🔇 تشغيل موسيقى التوتر';
+    } else {
+      startTerrorMusic();
+      document.getElementById('musicToggleBtn').innerText = '🔊 إيقاف موسيقى التوتر';
+    }
+  }
+
+  let currentUser = null;
+  let isLoginState = true;
+  let resetClickCount = 0;
+  let currentRoomPlayers = 6;
+
+  // قدرات القتلة المحدودة
+  let aftonUses = { msg: false, vote: false, corpse: false };
+
+  const charInfo = {
+    'فريدي': { role: 'قاتل', desc: 'القتل الصامت وإلغاء رسالة كشف القاتل الخاصة باللاعب الذهبي!' },
+    'بوني': { role: 'قاتل', desc: 'إغلاق الأبواب وحجب الشات عن أحد المدنيين لربكته!' },
+    'تشيكا': { role: 'قاتل', desc: 'تزوير الأدلة وإرسال رسائل تنبيه مزيفة للشات!' },
+    'فوكسي': { role: 'قاتل', desc: 'هجوم سريع وتقليل وقت النقاش والتصويت!' },
+    'ويليام أفتن': { role: 'قاتل أسطوري', desc: 'انتحال الشخصيات لتوريط الشرطي، والتلاعب بالتصويت، وضم جثة أنيماترونكس (إذا كان عددكم 6+).' },
+    'محقق': { role: 'مواطن خاص', desc: 'كشف هوية لاعب واحد كل ليلة.' },
+    'طبيب': { role: 'مواطن خاص', desc: 'حماية لاعب واحد (أو نفسك) من القتل.' },
+    'طفل (مدني)': { role: 'مواطن', desc: 'المشاركة في الشات والتصويت لكشف القاتل.' }
+  };
+
+  function switchAuth(isLogin) {
+    startTerrorMusic();
+    isLoginState = isLogin;
+    document.getElementById('authBtn').innerText = isLogin ? 'تسجيل الدخول' : 'إنشاء حساب جديد';
+  }
+
+  function handleAuth() {
+    startTerrorMusic();
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value.trim();
+    if(!u || !p) { alert('اكتب اسم المستخدم وكلمة المرور'); return; }
+
+    let users = JSON.parse(localStorage.getItem('fnaf_v3_users') || '{}');
+
+    if(isLoginState) {
+      if(users[u] && users[u].pass === p) {
+        currentUser = users[u];
+        loginSuccess();
+      } else { alert('خطأ في البيانات!'); }
+    } else {
+      if(users[u]) { alert('الحساب مسجل مسبقاً!'); } 
+      else {
+        users[u] = { name: u, pass: p, character: 'طفل (مدني)' };
+        localStorage.setItem('fnaf_v3_users', JSON.stringify(users));
+        currentUser = users[u];
+        loginSuccess();
+      }
+    }
+  }
+
+  function loginSuccess() {
+    document.getElementById('playerDisplay').innerText = currentUser.name;
+    document.getElementById('roleDisplay').innerText = `الشخصية: ${currentUser.character}`;
+    showScreen('mainMenu');
+  }
+
+  function logout() {
+    currentUser = null;
+    showScreen('authScreen');
+  }
+
+  function showScreen(id) {
+    startTerrorMusic();
+    ['authScreen', 'mainMenu', 'gachaScreen', 'lobbyScreen', 'inRoomScreen', 'settingsScreen'].forEach(s => {
+      document.getElementById(s).classList.add('hidden');
+    });
+    document.getElementById(id).classList.remove('hidden');
+  }
+
+  // الرمز السري للأدمن ياسر
+  function clickResetSecret() {
+    resetClickCount++;
+    if(resetClickCount >= 7) {
+      resetClickCount = 0;
+      const code = prompt('أدخل رمز الأدمن:');
+      if(code === 'zxcvbnm') {
+        alert('أهلاً بالأدمن ياسر! تم تفعيل لوحة التحكم والشخصية الأسطورية.');
+        document.getElementById('adminBadge').classList.remove('hidden');
+        currentUser.character = 'ويليام أفتن';
+        document.getElementById('roleDisplay').innerText = `الشخصية: ويليام أفتن (الأدمن)`;
+        showScreen('mainMenu');
+      } else { alert('رمز خاطئ!'); }
+    }
+  }
+
+  function forceBecomeKiller() {
+    currentUser.character = 'ويليام أفتن';
+    alert('تم تعيينك كالقاتل الرئيسي (ويليام أفتن)!');
+    document.getElementById('roleDisplay').innerText = `الشخصية: ويليام أفتن (الأدمن)`;
+  }
+
+  function openPack() {
+    const chars = ['فريدي', 'بوني', 'تشيكا', 'فوكسي', 'محقق', 'طبيب'];
+    let chosen = chars[Math.floor(Math.random() * chars.length)];
+    if(Math.random() < 0.03) chosen = 'ويليام أفتن';
+
+    currentUser.character = chosen;
+    document.getElementById('gachaResult').innerHTML = `<h3>حصلت على: ${chosen}</h3>`;
+    document.getElementById('roleDisplay').innerText = `الشخصية: ${chosen}`;
+  }
+
+  // بدء الجيم وعرض بطاقة الميزات لـ 5 ثوانٍ
+  function createRoom() {
+    const name = document.getElementById('roomName').value.trim();
+    currentRoomPlayers = parseInt(document.getElementById('playerCount').value) || 6;
+    if(!name) return;
+
+    aftonUses = { msg: false, vote: false, corpse: false };
+
+    document.getElementById('currentRoomTitle').innerText = `روم: ${name}`;
+    document.getElementById('roomInfo').innerText = `اللاعبون: ${currentRoomPlayers} | القتلة: ${Math.floor(currentRoomPlayers / 4)}`;
+
+    showScreen('inRoomScreen');
+    triggerRoleReveal();
+  }
+
+  function triggerRoleReveal() {
+    const overlay = document.getElementById('roleRevealOverlay');
+    const info = charInfo[currentUser.character] || charInfo['طفل (مدني)'];
+
+    document.getElementById('revealTitle').innerText = currentUser.name;
+    document.getElementById('revealRole').innerText = `دورك: ${currentUser.character} (${info.role})`;
+    document.getElementById('revealDesc').innerText = info.desc;
+
+    overlay.classList.remove('hidden');
+
+    let count = 5;
+    document.getElementById('revealTimer').innerText = count;
+    
+    const timer = setInterval(() => {
+      count--;
+      document.getElementById('revealTimer').innerText = count;
+      if(count <= 0) {
+        clearInterval(timer);
+        overlay.classList.add('hidden');
+        setupGameAbilities();
+      }
+    }, 1000);
+  }
+
+  function setupGameAbilities() {
+    const area = document.getElementById('abilitiesArea');
+    const topArea = document.getElementById('topAbilitiesArea');
+    area.innerHTML = ''; topArea.innerHTML = '';
+
+    const char = currentUser.character;
+
+    if(char === 'ويليام أفتن') {
+      // ميزة تحويل الجثة متاحة فقط إذا كان العدد 6 فأكثر
+      if(currentRoomPlayers >= 6) {
+        topArea.innerHTML = `<button id="corpseBtn" onclick="useCorpse()">🤖 ضع الجثة في أنيماترونكس (تحويل لاعب معك)</button>`;
+      } else {
+        topArea.innerHTML = `<p style="color:#aaa; font-size:11px; text-align:center;">(ميزة تحويل الجثة تتطلب 6 لاعبين فأكثر)</p>`;
+      }
+
+      area.innerHTML = `
+        <button id="msgBtn" onclick="useAftonMsg()">🎭 انتحال شخصية (ربكة الشرطي)</button>
+        <button id="voteBtn" onclick="useAftonVote()">🗳️ التلاعب بالتصويت</button>
+      `;
+    } else if(char === 'فريدي') {
+      area.innerHTML = `<button onclick="blockGolden()">🐻 إلغاء رسالة اللاعب الذهبي</button>`;
+    } else if(char === 'محقق') {
+      area.innerHTML = `<button onclick="investigate()">🔍 كشف هوية لاعب</button>`;
+    } else if(char === 'طبيب') {
+      area.innerHTML = `<button onclick="heal()">🩺 حماية لاعب من القتل</button>`;
+    }
+
+    document.getElementById('chatBox').innerHTML = `<div class="chat-msg system">[النظام]: بدأت الجولة! تناقشوا وشكوا في القاتل.</div>`;
+  }
+
+  function useAftonMsg() {
+    if(aftonUses.msg) return alert('استخدمت هذه الميزة سابقاً!');
+    const target = prompt('اكتب اسم اللاعب المراد انتحاله (مثلاً المحقق):');
+    const msg = prompt('اكتب الرسالة (مثلاً: يا عيال أنا الشرطي وهذا كذاب!):');
+    if(target && msg) {
+      aftonUses.msg = true;
+      document.getElementById('msgBtn').disabled = true;
+      appendChat(target, msg);
+    }
+  }
+
+  function useAftonVote() {
+    if(aftonUses.vote) return alert('استخدمت التلاعب بالتصويت مسبقاً!');
+    const target = prompt('اسم اللاعب لتوجيه الأصوات ضدّه:');
+    if(target) {
+      aftonUses.vote = true;
+      document.getElementById('voteBtn').disabled = true;
+      appendChat('[نظام]', `⚠️ تم تحويل الأصوات تلقائياً ضد (${target})!`);
+    }
+  }
+
+  function useCorpse() {
+    if(aftonUses.corpse) return alert('استخدمت تحويل الجثة مسبقاً!');
+    const victim = prompt('اكتب اسم اللاعب المقتول (مثل: فهد):');
+    if(victim) {
+      aftonUses.corpse = true;
+      document.getElementById('corpseBtn').disabled = true;
+      appendChat('[أنيماترونكس]', `🤖 قام ويليام أفتن بوضع (${victim}) داخل دمية وأصبح يقتل معه!`);
+    }
+  }
+
+  function blockGolden() {
+    appendChat('[فريدي]', `🐻 تم إلغاء رسالة كشف القاتل بنجاح!`);
+  }
+
+  function investigate() {
+    const p = prompt('اسم اللاعب للتحقيق:');
+    if(p) alert(`نتيجة التحقيق: ${p} مشبوه!`);
+  }
+
+  function heal() {
+    const p = prompt('اسم الشخص لحمايته:');
+    if(p) appendChat('[الطبيب]', `🩺 تم وضع حماية على (${p}).`);
+  }
+
+  function sendMsg() {
+    const input = document.getElementById('chatInput');
+    if(!input.value.trim()) return;
+    appendChat(`${currentUser.name} (${currentUser.character})`, input.value);
+    input.value = '';
+  }
+
+  function appendChat(user, text) {
+    const box = document.getElementById('chatBox');
+    box.innerHTML += `<div class="chat-msg"><span class="user">${user}:</span> <span>${text}</span></div>`;
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function leaveRoom() {
+    showScreen('lobbyScreen');
+  }
+</script>
+</body>
+</html>
